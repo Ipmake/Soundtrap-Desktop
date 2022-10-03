@@ -1,25 +1,23 @@
 {
-  "name": "electron-quick-start",
+  "name": "Soundtrap",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "A desktop app for Soundtrap",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
-  ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "repository": "https://github.com/Ipmake/Soundtrap-Desktop",
+  "author": "Ipmake",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^20.2.0"
   },
   "dependencies": {
     "discord-rich-presence": "^0.0.8"
+  },
+  "build": {
+    "appId": "net.ipgg.soundtrap"
   }
 }
