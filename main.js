@@ -9,6 +9,7 @@ function createWindow () {
   var mainWindow = new BrowserWindow({
     width: 1700,
     height: 1200,
+    autoHideMenuBar: true,
     icon: path.join(__dirname, 'logo.png')
   })
 
