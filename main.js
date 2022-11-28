@@ -1,7 +1,20 @@
-// Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
-const path = require('path')
-const client = require('discord-rich-presence')('1026444157750882375');
+const path = require('path');
+const fs = require('fs');
+const checksum = require('checksum');
+const axios = require('axios');
+
+const RPC = require('discord-rich-presence');
+const { fstat } = require('fs');
+const client = RPC('1046884861358645268')
+
+// check if cache.json exists
+if (!fs.existsSync('./cache.json')) {
+  fs.writeFileSync('./cache.json', "{}")
+}
+
+var cache = JSON.parse(fs.readFileSync('./cache.json', 'utf8'))
+
 
 
 function createWindow () {
@@ -10,53 +23,47 @@ function createWindow () {
     width: 1700,
     height: 1200,
     autoHideMenuBar: true,
-    icon: path.join(__dirname, 'logo.png')
+    icon: "./logo.png"
   })
 
   // and load the index.html of the app.
-  mainWindow.loadURL('https://www.soundtrap.com/home')
+  mainWindow.loadURL('https://app.plex.tv')
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
+  setInterval(async () => {
 
-  client.updatePresence({
-    state: 'Home',
-    details: 'by Spotify🎵',
-    startTimestamp: Date.now(),
-    largeImageKey: 'logo',
-    instance: true,
-  });
-  
-  setInterval(function() {
-    var url = mainWindow.webContents.getURL()
-    url = url.replace('https://www.soundtrap.com/', '');
-    url = url.split('/')
-  
-    switch(url[0]) {
-      case 'home': 
-        client.updatePresence({
-          state: 'Ideling',
-          details: 'by Spotify🎵',
-          largeImageKey: 'logo',
-          instance: true,
-        });
-  
-        break;
-  
-      case 'studio':
-        const title = mainWindow.getTitle().split(' - ')
+    // get the window title
+    var title = mainWindow.getTitle();
+    var playing = title.includes("▶")
+    title = title.replace("▶ ", "")
 
-        client.updatePresence({
-          state: 'Recording',
-          details: title[0],
-          largeImageKey: 'logo',
-          instance: true,
-        });
+    playArtits = title.split(" - ")[0]
+    playTitle = title.split(" - ")[1]
+    playTitle = playTitle.replace("·", "-")
 
-        break;
-    }
-  
-  }, 5000)
+    // get the element with the classes "MetadataPosterCardFace-face-FcNn6A MetadataPosterCardFace-poster-MwJE1t MetadataPosterCardFace-faceFront-h7AIDh"
+    var image = await mainWindow.webContents.executeJavaScript(fs.readFileSync("./test.js", 'utf8'))
+
+
+    //convert the image to base64
+    var base64Image = image.replace(/^data:image\/png;base64,/, "");
+    updateCache(base64Image)
+
+    // client.updatePresence({
+    //   state: 'sasddas',
+    //   details: 'sdsasdadsa',
+      
+    //   largeImageKey: base64Image
+    // })
+
+    console.log(playArtits)
+    console.log(playTitle)
+
+
+
+
+  }, 2000)
 }
 
 // This method will be called when Electron has finished
@@ -82,3 +89,25 @@ app.on('window-all-closed', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+function updateCache(image) {
+  const cs = checksum(image)
+  if(cache[cs]){
+    return cache[cs]
+  }
+
+  axios.post('https://discord.com/api/webhooks/1046904644179349634/i5vJBe8u3BZO2SZpeUGy5FP2oEbJHVSZzpX-lIhQCx3orHk2IGlQLImaWbP-rSYE_kYg', {
+    embeds: [
+      {
+        image: {
+          url: image
+        }
+      }
+    ]
+  }).then(res => {
+    console.log(res.data)
+    cache[cs] = res.data.id
+    fs.writeFileSync('./cache.json', JSON.stringify(cache))
+  }).catch(err => {
+    console.log(err)
+  })
+}
